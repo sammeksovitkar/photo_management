@@ -259,7 +259,7 @@ const handlePrint = () => {
              transform: 'scale(0.75)',
              display: 'flex',
              flexWrap: 'wrap',
-             gap: '15px',
+             gap: '10px',
              padding: '15px',
              justifyContent: 'flex-start',
              alignContent: 'flex-start',
@@ -273,8 +273,8 @@ const handlePrint = () => {
             ) : (
               [...Array(layout === '4x6_9' ? count4x6 : (layout === '2x2_6' ? 6 : 1))].map((_, i) => (
                 <div key={i} className="box" style={{
-                  width: (layout === '4x6_9' || layout === '2x2_6') ? '110px' : (layout === 'pvc' ? '325px' : '560px'),
-                  height: (layout === '4x6_9' || layout === '2x2_6') ? '130px' : (layout === 'pvc' ? '205px' : '800px'),
+                  width: (layout === '4x6_9' || layout === '2x2_6') ? '115px' : (layout === 'pvc' ? '325px' : '560px'),
+                  height: (layout === '4x6_9' || layout === '2x2_6') ? '133px' : (layout === 'pvc' ? '205px' : '800px'),
                   border: '1px solid #000',
                   overflow: 'hidden'
                 }}>
