@@ -273,8 +273,8 @@ const handlePrint = () => {
            }}>
             {layout === 'aadhar' ? (
               <div className="aadhar-flex" style={{display: 'flex', flexDirection: 'column', gap: '15px',marginTop:"20%", width: '100%', alignItems: 'center'}}>
-                <div className="aadhar-box" style={{width: '325px', height: '205px', border: '1px solid #000'}}>{aadhar.front && <img src={aadhar.front} style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}</div>
-                <div className="aadhar-box" style={{width: '325px', height: '205px', border: '1px solid #000'}}>{aadhar.back && <img src={aadhar.back} style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}</div>
+                <div className="aadhar-box" style={{width: '325px', height: '205px', border: '1px solid #000'}}>{aadhar.front && <img src={aadhar.front} alt='adhar fornt' style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}</div>
+                <div className="aadhar-box" style={{width: '325px', height: '205px', border: '1px solid #000'}}>{aadhar.back && <img src={aadhar.back} alt='adharback' style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}</div>
               </div>
             ) : (
               [...Array(layout === '4x6_9' ? count4x6 : (layout === '2x2_6' ? 6 : 1))].map((_, i) => (
@@ -284,7 +284,7 @@ const handlePrint = () => {
                   border: '1px solid #000',
                   overflow: 'hidden'
                 }}>
-                  {image && <img src={image} style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}
+                  {image && <img src={image} alt=" adhar Back" style={{width:'100%', height:'100%', objectFit:'cover', filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />}
                 </div>
               ))
             )}
