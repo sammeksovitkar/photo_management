@@ -109,58 +109,53 @@ const applyCrop = () => {
   setSrc(null);
   setCroppingSide(null);
 };
-
 const handlePrint = () => {
   const isSmall = ['4x6_9', '2x2_6', 'pvc'].includes(layout);
   const win = window.open('', '_blank');
 
+  // Using slightly less than 4in/6in ensures the printer driver 
+  // doesn't "panic" and default to A4.
+  const w = isSmall ? '3.98in' : '210mm';
+  const h = isSmall ? '5.98in' : '297mm';
+
   win.document.write(`
     <html>
       <head>
-        <title>Print Photo</title>
+        <title>Photo Print</title>
         <style>
-          /* 1. Force the Page Size */
+          /* 1. Critical: Define the physical paper size */
           @page { 
             size: ${isSmall ? '4in 6in' : 'A4'}; 
-            margin: 0; 
+            margin: 0 !important; 
           }
           
-          /* 2. Setup HTML and Body to match the page size exactly */
+          /* 2. Force the container to be slightly smaller than the paper */
           html, body { 
-            margin: 0; 
-            padding: 0; 
-            width: ${isSmall ? '4in' : '210mm'};
-            height: ${isSmall ? '6in' : '297mm'};
-            overflow: hidden; 
-            -webkit-print-color-adjust: exact; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: ${w};
+            height: ${h};
+            overflow: hidden;
+            -webkit-print-color-adjust: exact;
           }
 
-          /* 3. The container must fill the body */
           .print-wrapper {
-            width: 100%;
-            height: 100%;
+            width: ${w};
+            height: ${h};
             display: flex;
             flex-wrap: wrap;
-            gap: 2mm;
-            padding: 2mm;
+            gap: 1mm;
+            padding: 1mm;
             box-sizing: border-box;
-            justify-content: flex-start;
+            justify-content: center;
             align-content: flex-start;
           }
 
-          /* 4. Photo Box Styles */
+          /* Photo Box adjustments for 4x6 */
           .box {
             border: 0.1mm solid #000;
-            overflow: hidden;
-            width: ${layout === '4x6_9' ? '1.1in' : (layout === '2x2_6' ? '1.1in' : '2in')};
-            height: ${layout === '4x6_9' ? '1.35in' : (layout === '2x2_6' ? '1.35in' : '2in')};
-          }
-
-          .aadhar-box { 
-            width: 86mm; 
-            height: 54mm; 
-            border: 0.1mm solid #000; 
-            margin: 2mm auto; 
+            width: ${layout === '4x6_9' ? '1.2in' : '2in'};
+            height: ${layout === '4x6_9' ? '1.8in' : '2in'};
           }
 
           img { 
@@ -175,11 +170,10 @@ const handlePrint = () => {
         <div class="print-wrapper">${printRef.current.innerHTML}</div>
         <script>
           window.onload = () => { 
-            // Small delay to ensure images are rendered before print dialog opens
             setTimeout(() => {
                 window.print(); 
                 window.close();
-            }, 300);
+            }, 500);
           };
         </script>
       </body>
@@ -265,7 +259,7 @@ const handlePrint = () => {
              transform: 'scale(0.75)',
              display: 'flex',
              flexWrap: 'wrap',
-             gap: '10px',
+             gap: '15px',
              padding: '15px',
              justifyContent: 'flex-start',
              alignContent: 'flex-start',
@@ -279,7 +273,7 @@ const handlePrint = () => {
             ) : (
               [...Array(layout === '4x6_9' ? count4x6 : (layout === '2x2_6' ? 6 : 1))].map((_, i) => (
                 <div key={i} className="box" style={{
-                  width: (layout === '4x6_9' || layout === '2x2_6') ? '106px' : (layout === 'pvc' ? '325px' : '560px'),
+                  width: (layout === '4x6_9' || layout === '2x2_6') ? '110px' : (layout === 'pvc' ? '325px' : '560px'),
                   height: (layout === '4x6_9' || layout === '2x2_6') ? '130px' : (layout === 'pvc' ? '205px' : '800px'),
                   border: '1px solid #000',
                   overflow: 'hidden'
