@@ -263,7 +263,9 @@ const handlePrint = () => {
              padding: '15px',
              justifyContent: 'flex-start',
              alignContent: 'flex-start',
-             backgroundColor: '#fff'
+             backgroundColor: '#fff',
+                               paddingLeft:"25px"
+
            }}>
             {layout === 'aadhar' ? (
               <div className="aadhar-flex" style={{display: 'flex', flexDirection: 'column', gap: '15px',marginTop:"20%", width: '100%', alignItems: 'center'}}>
