@@ -21,7 +21,6 @@
 
 .preview-pane { flex: 1; background: #bdc3c7; border-radius: 15px; display: flex; justify-content: center; padding: 40px; min-height: 600px; overflow: hidden; }
 .sheet { background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform-origin: top center; }
-
 .aadhar-preview-container { display: flex; flexDirection: column; align-items: center; gap: 25px; padding-top: 50px; }
 .grid-preview-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 15px; }
 .box { border: 0.5px solid #333; background: #fff; overflow: hidden; }
