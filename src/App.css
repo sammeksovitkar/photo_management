@@ -1,41 +1,36 @@
 .app-container { background: #f4f7f6; min-height: 100vh; font-family: 'Inter', sans-serif; color: #333; }
-.header { background: #2c3e50; color: #fff; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.loading-bar { color: #f1c40f; font-weight: bold; margin-top: 5px; animation: blink 1s infinite; }
+.header { background: #2c3e50; color: #fff; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-.main-content { display: flex; padding: 30px; gap: 30px; max-width: 1300px; margin: 0 auto; align-items: flex-start; }
-.sidebar { width: 320px; display: flex; flex-direction: column; gap: 20px; }
-.card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
-.section-title { font-size: 12px; color: #95a5a6; text-transform: uppercase; margin-bottom: 15px; font-weight: 700; }
+.main-content { display: flex; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; }
+.sidebar { width: 320px; display: flex; flex-direction: column; gap: 15px; }
+.card { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
+.section-title { font-size: 11px; color: #95a5a6; text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
 
-.tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.tab-btn { padding: 12px 5px; border: 1px solid #dfe6e9; background: #fff; cursor: pointer; border-radius: 8px; display: flex; flex-direction: column; align-items: center; transition: all 0.2s; }
-.tab-btn:hover { border-color: #3498db; }
+.tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tab-btn { padding: 10px 5px; border: 1px solid #dfe6e9; background: #fff; cursor: pointer; border-radius: 8px; display: flex; flex-direction: column; align-items: center; font-size: 12px; }
 .tab-btn.active { background: #3498db; color: #fff; border-color: #3498db; }
-.tab-btn .icon { font-size: 22px; margin-bottom: 4px; }
 
-.main-action-btn { background: #27ae60; color: #fff; padding: 14px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; font-size: 15px; }
+/* Background Remover Styling */
+.bg-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.bg-controls input[type="color"] { width: 40px; height: 40px; border: none; border-radius: 5px; cursor: pointer; }
+.bg-btn { flex: 1; background: #9b59b6; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+.slider { width: 100%; margin: 10px 0; }
+
+.main-action-btn { background: #27ae60; color: #fff; padding: 12px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; }
 .main-action-btn.cancel { background: #95a5a6; }
-.print-btn { background: #e74c3c; color: #fff; padding: 16px; border: none; border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer; font-weight: 700; font-size: 16px; }
+.print-btn { background: #e74c3c; color: #fff; padding: 14px; border: none; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: 700; }
 
-.upload-slot { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px dashed #3498db; border-radius: 8px; cursor: pointer; background: #ebf5fb; font-weight: 600; color: #2980b9; }
+.upload-slot { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px dashed #3498db; border-radius: 8px; cursor: pointer; background: #f0f7ff; color: #2980b9; font-weight: bold; }
 
-.preview-pane { flex: 1; background: #bdc3c7; border-radius: 15px; display: flex; justify-content: center; padding: 40px; min-height: 600px; overflow: hidden; }
-.sheet { background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform-origin: top center; }
-.aadhar-preview-container { display: flex; flexDirection: column; align-items: center; gap: 25px; padding-top: 50px; }
-.grid-preview-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 15px; }
-.box { border: 0.5px solid #333; background: #fff; overflow: hidden; }
+.preview-pane { flex: 1; background: #95a5a6; border-radius: 15px; display: flex; justify-content: center; padding: 20px; overflow: hidden; }
+.sheet { background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-.modal-body { background: #fff; padding: 25px; border-radius: 15px; width: auto; max-width: 95vw; }
-.modal-actions { margin-top: 20px; display: flex; gap: 15px; }
+/* Physical Scaling Logic */
+.id-size { width: 325px; height: 205px; border: 1px solid #000; overflow: hidden; }
+.passport-size { width: 115px; height: 135px; border: 1px solid #000; overflow: hidden; }
+.id-size img, .passport-size img { width: 100%; height: 100%; object-fit: cover; }
 
-@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-/* Inside handlePrint style tag */
-.aadhar-box img { 
-    object-fit: fill; /* This will stretch the crop to fit the exact ID card size */
-}
-
-.box img { 
-    object-fit: cover; /* This keeps passport photos looking natural */
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.modal-body { background: #fff; padding: 20px; border-radius: 12px; max-width: 90vw; }
+.modal-actions { display: flex; gap: 10px; margin-top: 15px; }
