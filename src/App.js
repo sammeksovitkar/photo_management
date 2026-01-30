@@ -7,7 +7,7 @@ import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-const REMOVE_BG_API_KEY = 'doRt3NdybSSbwqMZYECAA5eX'; // Replace with your key
+const REMOVE_BG_API_KEY = process.env.REACT_APP_REMOVE_BG_KEY 
 
 const layoutOptions = [
   { label: '4x6 Layout', value: '4x6_9', icon: '📱' },
