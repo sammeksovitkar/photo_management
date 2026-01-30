@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import './App.css';
+
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const REMOVE_BG_API_KEY = process.env.REACT_APP_REMOVE_BG_KEY 
-
 const layoutOptions = [
   { label: '4x6 Layout', value: '4x6_9', icon: '📱' },
   { label: 'A4 Full', value: 'a4', icon: '📄' },
@@ -21,16 +21,17 @@ export default function App() {
   const [layout, setLayout] = useState('4x6_9');
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
-  const [count4x6, setCount4x6] = useState(12);
+  const [count4x6, setCount4x6] = useState(12); // Default count
   const [bgColor, setBgColor] = useState('#ffffff');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const [src, setSrc] = useState(null);
-  const [image, setImage] = useState(null); // The raw cropped image
-  const [finalProcessedImg, setFinalProcessedImg] = useState(null); // The image with filters BAKED in
+  const [image, setImage] = useState(null); 
+  const [finalProcessedImg, setFinalProcessedImg] = useState(null); 
   const [aadhar, setAadhar] = useState({ front: null, back: null });
   const [croppingSide, setCroppingSide] = useState(null);
 
+  // Unused state kept for logic compatibility but satisfied for build
   const [pdfDoc, setPdfDoc] = useState(null);
   const [pageCount, setPageCount] = useState(1);
   const [pageNo, setPageNo] = useState(1);
@@ -40,7 +41,6 @@ export default function App() {
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState();
 
-  // EFFECT: Bake filters whenever they change so the print window sees them
   useEffect(() => {
     const bakeFilters = (imgSource) => {
       if (!imgSource) return;
@@ -174,7 +174,7 @@ export default function App() {
               justify-content: center; align-content: flex-start;
               background-color: white; -webkit-print-color-adjust: exact;
             }
-            .box { border: 0.1mm solid #000; overflow: hidden; }
+            .box { border: 0.1mm solid #000; overflow: hidden; width: 1.1in; height: 1.4in; margin: 1mm; }
             .box img, .aadhar-box img { width: 100%; height: 100%; object-fit: cover; }
             /* ID Card Specific Sizes */
             .id-size { width: 3.37in; height: 2.12in; border: 0.1mm solid #000; margin-bottom: 2mm; }
@@ -210,6 +210,24 @@ export default function App() {
             </div>
           </div>
 
+          {/* ADDED: Count Buttons for 4x6 Layout */}
+          {layout === '4x6_9' && (
+            <div className="card">
+              <h4 className="section-title">Photo Count</h4>
+              <div className="tab-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                {[3, 9, 12].map(num => (
+                  <button 
+                    key={num} 
+                    className={`tab-btn ${count4x6 === num ? 'active' : ''}`} 
+                    onClick={() => setCount4x6(num)}
+                  >
+                    <span className="label">{num} Pcs</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="card">
             <h4 className="section-title">2. Background & Filters</h4>
             <div className="bg-controls">
@@ -242,6 +260,11 @@ export default function App() {
               </button>
             )}
             <button className="print-btn" onClick={handlePrint} disabled={!(image || aadhar.front)}>📤 PRINT NOW</button>
+          </div>
+
+          {/* Developer Name */}
+          <div style={{ padding: '10px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
+            Developer: <b>Sammek Pravin Sovitkar</b>
           </div>
         </aside>
 
