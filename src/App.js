@@ -10,31 +10,28 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const REMOVE_BG_API_KEY = process.env.REACT_APP_REMOVE_BG_KEY 
 const layoutOptions = [
-  { label: '4x6 Layout', value: '4x6_9', icon: '📱' },
-  { label: 'A4 Full', value: 'a4', icon: '📄' },
   { label: 'PVC Card', value: 'pvc', icon: '💳' },
-  { label: 'Passport', value: '2x2_6', icon: '👤' },
   { label: 'Aadhar', value: 'aadhar', icon: '🆔' },
+  { label: 'Custom', value: 'custom', icon: '⚙️' },
 ];
 
 export default function App() {
-  const [layout, setLayout] = useState('4x6_9');
+  const [layout, setLayout] = useState('pvc'); 
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
-  const [count4x6, setCount4x6] = useState(12); // Default count
   const [bgColor, setBgColor] = useState('#ffffff');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const [customW, setCustomW] = useState(1.12); 
+  const [customH, setCustomH] = useState(1.33); 
+  const [customCount, setCustomCount] = useState(1);
+  const [customPaper, setCustomPaper] = useState('a4'); 
 
   const [src, setSrc] = useState(null);
   const [image, setImage] = useState(null); 
   const [finalProcessedImg, setFinalProcessedImg] = useState(null); 
   const [aadhar, setAadhar] = useState({ front: null, back: null });
   const [croppingSide, setCroppingSide] = useState(null);
-
-  // Unused state kept for logic compatibility but satisfied for build
-  const [pdfDoc, setPdfDoc] = useState(null);
-  const [pageCount, setPageCount] = useState(1);
-  const [pageNo, setPageNo] = useState(1);
 
   const imgRef = useRef(null);
   const printRef = useRef(null);
@@ -56,7 +53,6 @@ export default function App() {
       };
       img.src = imgSource;
     };
-
     if (image) bakeFilters(image);
   }, [brightness, contrast, image]);
 
@@ -67,20 +63,15 @@ export default function App() {
       const blob = await (await fetch(image)).blob();
       const formData = new FormData();
       formData.append('image_file', blob);
-
       const res = await fetch('https://api.remove.bg/v1.0/removebg', {
         method: 'POST',
         headers: { 'X-Api-Key': REMOVE_BG_API_KEY },
         body: formData,
       });
-
       if (!res.ok) throw new Error('API Error');
-      
       const resultBlob = await res.blob();
       const reader = new FileReader();
-      reader.onloadend = () => {
-        applyNewBackground(reader.result);
-      };
+      reader.onloadend = () => applyNewBackground(reader.result);
       reader.readAsDataURL(resultBlob);
     } catch (e) {
       alert("Removal failed. Check API key.");
@@ -92,8 +83,7 @@ export default function App() {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = img.width; canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -104,47 +94,81 @@ export default function App() {
     img.src = transparentBase64;
   };
 
-  const renderPdfPage = async (doc, page) => {
-    const pdfPage = await doc.getPage(page);
-    const viewport = pdfPage.getViewport({ scale: 2.5 });
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    await pdfPage.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    setSrc(canvas.toDataURL('image/jpeg', 0.95));
-  };
-
+  // UPDATED: handleFile with PDF Password Support
+// 1. Increase PDF Import Scale for crystal clear text
   const handleFile = async (file, side = null) => {
     if (!file) return;
     if (side) setCroppingSide(side);
+
     if (file.type === 'application/pdf') {
-      const buffer = await file.arrayBuffer();
-      const task = pdfjsLib.getDocument({ data: buffer });
-      const pdf = await task.promise;
-      setPdfDoc(pdf);
-      setPageCount(pdf.numPages);
-      setPageNo(1);
-      renderPdfPage(pdf, 1);
+      try {
+        const buffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: buffer });
+
+        loadingTask.onPassword = (updatePassword) => {
+          const pass = prompt("Enter Aadhaar Password:");
+          if (pass) updatePassword(pass);
+        };
+
+        const pdf = await loadingTask.promise;
+        const pdfPage = await pdf.getPage(1);
+        
+        // CHANGED: Scale increased to 5.0 for Ultra HD resolution
+        const viewport = pdfPage.getViewport({ scale: 10.0 }); 
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        
+        const ctx = canvas.getContext('2d');
+        // Enable high-quality drawing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        await pdfPage.render({ canvasContext: ctx, viewport }).promise;
+        setSrc(canvas.toDataURL('image/jpeg', 1.0)); // 1.0 = No compression
+      } catch (err) {
+        alert("Error loading PDF");
+      }
     } else {
-      setPdfDoc(null);
       const reader = new FileReader();
       reader.onload = () => setSrc(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
+  // 2. High-Resolution Cropping Logic
   const applyCrop = () => {
     if (!completedCrop || !imgRef.current) return;
+
     const img = imgRef.current;
     const canvas = document.createElement('canvas');
+
+    // Calculate the ratio between the display size and the actual file size
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
+
+    // Set canvas to the ORIGINAL file's pixel dimensions
     canvas.width = completedCrop.width * scaleX;
     canvas.height = completedCrop.height * scaleY;
+
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, completedCrop.x * scaleX, completedCrop.y * scaleY, completedCrop.width * scaleX, completedCrop.height * scaleY, 0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(
+      img,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    // Export as high-quality JPEG
     const croppedData = canvas.toDataURL('image/jpeg', 1.0);
     
     if (layout === 'aadhar' && croppingSide) {
@@ -155,18 +179,64 @@ export default function App() {
     setSrc(null);
   };
 
+// const applyCrop = () => {
+//     if (!completedCrop || !imgRef.current) return;
+
+//     const img = imgRef.current;
+//     const canvas = document.createElement('canvas');
+
+//     // These represent the actual pixels of the original high-res image
+//     const pixelRatio = window.devicePixelRatio || 1;
+//     const scaleX = img.naturalWidth / img.width;
+//     const scaleY = img.naturalHeight / img.height;
+
+//     // Set canvas dimensions to the ACTUAL high-res pixels
+//     canvas.width = completedCrop.width * scaleX;
+//     canvas.height = completedCrop.height * scaleY;
+
+//     const ctx = canvas.getContext('2d');
+
+//     // Use imageSmoothingEnabled for better clarity
+//     ctx.imageSmoothingEnabled = true;
+//     ctx.imageSmoothingQuality = 'high';
+
+//     ctx.drawImage(
+//       img,
+//       completedCrop.x * scaleX,
+//       completedCrop.y * scaleY,
+//       completedCrop.width * scaleX,
+//       completedCrop.height * scaleY,
+//       0,
+//       0,
+//       canvas.width,
+//       canvas.height
+//     );
+
+//     // Using 1.0 quality to preserve every detail
+//     const croppedData = canvas.toDataURL('image/jpeg', 1.0);
+    
+//     if (layout === 'aadhar' && croppingSide) {
+//       setAadhar(prev => ({ ...prev, [croppingSide]: croppedData }));
+//     } else {
+//       setImage(croppedData);
+//     }
+//     setSrc(null);
+//   };
+
   const handlePrint = () => {
-    const isSmall = ['4x6_9', '2x2_6', 'pvc', 'aadhar'].includes(layout);
+    const isCustom4x6 = layout === 'custom' && customPaper === '4x6';
+    const isStandardSmall = ['pvc', 'aadhar'].includes(layout);
+    const useSmallPaper = isCustom4x6 || isStandardSmall;
     const win = window.open('', '_blank');
-    const w = isSmall ? '3.98in' : '210mm';
-    const h = isSmall ? '5.98in' : '297mm';
+    const w = useSmallPaper ? '3.98in' : '210mm';
+    const h = useSmallPaper ? '5.98in' : '297mm';
 
     win.document.write(`
       <html>
         <head>
           <title>Photo Print</title>
           <style>
-            @page { size: ${isSmall ? '4in 6in' : 'A4'}; margin: 0 !important; }
+            @page { size: ${useSmallPaper ? '4in 6in' : 'A4'}; margin: 0 !important; }
             html, body { margin: 0; padding: 0; width: ${w}; height: ${h}; overflow: hidden; }
             .print-wrapper {
               width: ${w}; height: ${h}; display: flex; flex-wrap: wrap;
@@ -174,18 +244,15 @@ export default function App() {
               justify-content: center; align-content: flex-start;
               background-color: white; -webkit-print-color-adjust: exact;
             }
-            .box { border: 0.1mm solid #000; overflow: hidden; width: 1.1in; height: 1.4in; margin: 1mm; }
-            .box img, .aadhar-box img { width: 100%; height: 100%; object-fit: cover; }
-            /* ID Card Specific Sizes */
             .id-size { width: 3.37in; height: 2.12in; border: 0.1mm solid #000; margin-bottom: 2mm; }
-            .passport-size { width: 1in; height: 1.3in; }
+            .id-size img { width: 100%; height: 100%; object-fit: cover; }
+            .custom-size { width: ${customW}in; height: ${customH}in; border: 0.1mm solid #000; margin: 1mm; }
+            .custom-size img { width: 100%; height: 100%; object-fit: cover; }
           </style>
         </head>
         <body>
           <div class="print-wrapper">${printRef.current.innerHTML}</div>
-          <script>
-            window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 500); };
-          </script>
+          <script>window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 500); };</script>
         </body>
       </html>
     `);
@@ -195,7 +262,6 @@ export default function App() {
   return (
     <div className="app-container">
       <header className="header"><h1>Photo Studio Pro</h1></header>
-
       <main className="main-content">
         <aside className="sidebar">
           <div className="card">
@@ -210,20 +276,18 @@ export default function App() {
             </div>
           </div>
 
-          {/* ADDED: Count Buttons for 4x6 Layout */}
-          {layout === '4x6_9' && (
+          {layout === 'custom' && (
             <div className="card">
-              <h4 className="section-title">Photo Count</h4>
-              <div className="tab-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                {[3, 9, 12].map(num => (
-                  <button 
-                    key={num} 
-                    className={`tab-btn ${count4x6 === num ? 'active' : ''}`} 
-                    onClick={() => setCount4x6(num)}
-                  >
-                    <span className="label">{num} Pcs</span>
-                  </button>
-                ))}
+              <h4 className="section-title">Custom Settings</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '10px' }}>
+                <div><label>Width (in)</label><input type="number" step="0.1" value={customW} onChange={e => setCustomW(e.target.value)} style={{ width: '100%' }} /></div>
+                <div><label>Height (in)</label><input type="number" step="0.1" value={customH} onChange={e => setCustomH(e.target.value)} style={{ width: '100%' }} /></div>
+              </div>
+              <label>Count</label><input type="number" value={customCount} onChange={e => setCustomCount(e.target.value)} style={{ width: '100%', marginBottom: '10px' }} />
+              <label>Paper Size</label>
+              <div className="tab-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                <button className={`tab-btn ${customPaper === 'a4' ? 'active' : ''}`} onClick={() => setCustomPaper('a4')}>A4</button>
+                <button className={`tab-btn ${customPaper === '4x6' ? 'active' : ''}`} onClick={() => setCustomPaper('4x6')}>4x6</button>
               </div>
             </div>
           )}
@@ -261,18 +325,13 @@ export default function App() {
             )}
             <button className="print-btn" onClick={handlePrint} disabled={!(image || aadhar.front)}>📤 PRINT NOW</button>
           </div>
-
-          {/* Developer Name */}
-          <div style={{ padding: '10px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
-            Developer: <b>Sammek Pravin Sovitkar</b>
-          </div>
         </aside>
 
         <section className="preview-pane">
           <div className="sheet" ref={printRef} style={{
-             width: ['4x6_9','2x2_6'].includes(layout) ? '384px' : '595px',
-             height: ['4x6_9','2x2_6'].includes(layout) ? '576px' : '842px',
-             display: 'flex', flexWrap: 'wrap', gap: '10px', padding: '15px',
+             width: (layout === 'custom' ? (customPaper === '4x6' ? '384px' : '595px') : (layout === 'pvc' || layout === 'aadhar' ? '384px' : '595px')),
+             height: (layout === 'custom' ? (customPaper === '4x6' ? '576px' : '842px') : (layout === 'pvc' || layout === 'aadhar' ? '576px' : '842px')),
+             padding: '15px',
              backgroundColor: '#fff', transform: 'scale(0.85)', transformOrigin: 'top center'
            }}>
             {layout === 'aadhar' ? (
@@ -280,13 +339,16 @@ export default function App() {
                 <div className="id-size">{aadhar.front && <img src={aadhar.front} alt='f' style={{filter: `brightness(${brightness}%) contrast(${contrast}%)`}} />}</div>
                 <div className="id-size">{aadhar.back && <img src={aadhar.back} alt='b' style={{filter: `brightness(${brightness}%) contrast(${contrast}%)`}} />}</div>
               </div>
-            ) : (
-              [...Array(layout === '4x6_9' ? count4x6 : (layout === '2x2_6' ? 6 : 1))].map((_, i) => (
-                <div key={i} className={`box ${layout === 'pvc' ? 'id-size' : 'passport-size'}`} 
-                     style={{width: layout === 'a4' ? '100%' : '', height: layout === 'a4' ? '100%' : ''}}>
-                  {finalProcessedImg && <img src={finalProcessedImg} alt="img" />}
+            ) : layout === 'custom' ? (
+              [...Array(parseInt(customCount) || 0)].map((_, i) => (
+                <div key={i} className="custom-size" style={{ width: `${customW}in`, height: `${customH}in`, border: '0.1mm solid #000', overflow: 'hidden', margin: '1mm' }}>
+                   {finalProcessedImg && <img src={finalProcessedImg} alt="img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                 </div>
               ))
+            ) : (
+              <div className="id-size" style={{ margin: 'auto' }}>
+                {finalProcessedImg && <img src={finalProcessedImg} alt="img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </div>
             )}
           </div>
         </section>
@@ -297,7 +359,7 @@ export default function App() {
           <div className="modal-body">
             <h3>Crop Photo</h3>
             <ReactCrop crop={crop} onChange={c => setCrop(c)} onComplete={c => setCompletedCrop(c)}>
-              <img ref={imgRef} src={src} style={{ maxHeight: '60vh' }} alt="src" />
+              <img ref={imgRef} src={src} style={{ maxHeight: '80vh' }} alt="src" />
             </ReactCrop>
             <div className="modal-actions">
               <button className="main-action-btn" onClick={applyCrop}>Apply Crop</button>
