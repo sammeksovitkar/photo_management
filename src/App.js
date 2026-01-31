@@ -331,7 +331,7 @@ export default function App() {
           <div className="sheet" ref={printRef} style={{
              width: (layout === 'custom' ? (customPaper === '4x6' ? '384px' : '595px') : (layout === 'pvc' || layout === 'aadhar' ? '384px' : '595px')),
              height: (layout === 'custom' ? (customPaper === '4x6' ? '576px' : '842px') : (layout === 'pvc' || layout === 'aadhar' ? '576px' : '842px')),
-             padding: '15px',
+             padding: '15px',  display:"flex",flexFlow:"wrap",
              backgroundColor: '#fff', transform: 'scale(0.85)', transformOrigin: 'top center'
            }}>
             {layout === 'aadhar' ? (
