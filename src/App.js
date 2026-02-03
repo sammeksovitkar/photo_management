@@ -24,8 +24,8 @@ export default function App() {
 
   const [customW, setCustomW] = useState(1.12); 
   const [customH, setCustomH] = useState(1.33); 
-  const [customCount, setCustomCount] = useState(1);
-  const [customPaper, setCustomPaper] = useState('a4'); 
+  const [customCount, setCustomCount] = useState(12);
+  const [customPaper, setCustomPaper] = useState('4x6'); 
 
   const [src, setSrc] = useState(null);
   const [image, setImage] = useState(null); 
@@ -279,6 +279,7 @@ export default function App() {
           {layout === 'custom' && (
             <div className="card">
               <h4 className="section-title">Custom Settings</h4>
+              <p style={{fontSize:"12px"}}>for Passport - Width- 1.6 , Height - 1.9</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '10px' }}>
                 <div><label>Width (in)</label><input type="number" step="0.1" value={customW} onChange={e => setCustomW(e.target.value)} style={{ width: '100%' }} /></div>
                 <div><label>Height (in)</label><input type="number" step="0.1" value={customH} onChange={e => setCustomH(e.target.value)} style={{ width: '100%' }} /></div>
@@ -286,8 +287,9 @@ export default function App() {
               <label>Count</label><input type="number" value={customCount} onChange={e => setCustomCount(e.target.value)} style={{ width: '100%', marginBottom: '10px' }} />
               <label>Paper Size</label>
               <div className="tab-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                <button className={`tab-btn ${customPaper === 'a4' ? 'active' : ''}`} onClick={() => setCustomPaper('a4')}>A4</button>
+              
                 <button className={`tab-btn ${customPaper === '4x6' ? 'active' : ''}`} onClick={() => setCustomPaper('4x6')}>4x6</button>
+                  <button className={`tab-btn ${customPaper === 'a4' ? 'active' : ''}`} onClick={() => setCustomPaper('a4')}>A4</button>
               </div>
             </div>
           )}
@@ -331,7 +333,7 @@ export default function App() {
           <div className="sheet" ref={printRef} style={{
              width: (layout === 'custom' ? (customPaper === '4x6' ? '384px' : '595px') : (layout === 'pvc' || layout === 'aadhar' ? '384px' : '595px')),
              height: (layout === 'custom' ? (customPaper === '4x6' ? '576px' : '842px') : (layout === 'pvc' || layout === 'aadhar' ? '576px' : '842px')),
-             padding: '15px', display: layout === 'PVC Card' ? 'block' : 'flex',flexFlow:"wrap",
+             padding: '15px',  display:(layout=== "pvc"?"block":"flex"),flexFlow:"wrap",
              backgroundColor: '#fff', transform: 'scale(0.85)', transformOrigin: 'top center'
            }}>
             {layout === 'aadhar' ? (
