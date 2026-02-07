@@ -8,36 +8,53 @@ import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-const REMOVE_BG_API_KEY = process.env.REACT_APP_REMOVE_BG_KEY 
+const REMOVE_BG_API_KEY = process.env.REACT_APP_REMOVE_BG_KEY;
+// LOGIN CONSTANTS
+const AUTH_ID = process.env.REACT_APP_LOGIN_ID;
+const AUTH_PASS = process.env.REACT_APP_LOGIN_PASSWORD;
+
 const layoutOptions = [
+  { label: 'Custom', value: 'custom', icon: '⚙️' },
   { label: 'PVC Card', value: 'pvc', icon: '💳' },
   { label: 'Aadhar', value: 'aadhar', icon: '🆔' },
-  { label: 'Custom', value: 'custom', icon: '⚙️' },
 ];
 
 export default function App() {
-  const [layout, setLayout] = useState('pvc'); 
+  // --- LOGIN STATE ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginForm, setLoginForm] = useState({ userId: '', password: '' });
+
+  // --- YOUR ORIGINAL STATE ---
+  const [layout, setLayout] = useState('custom');
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [bgColor, setBgColor] = useState('#ffffff');
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const [customW, setCustomW] = useState(1.12); 
-  const [customH, setCustomH] = useState(1.33); 
+  const [customW, setCustomW] = useState(1.18);
+  const [customH, setCustomH] = useState(1.38);
   const [customCount, setCustomCount] = useState(12);
-  const [customPaper, setCustomPaper] = useState('4x6'); 
-
+  const [customPaper, setCustomPaper] = useState('4x6');
   const [src, setSrc] = useState(null);
-  const [image, setImage] = useState(null); 
-  const [finalProcessedImg, setFinalProcessedImg] = useState(null); 
+  const [image, setImage] = useState(null);
+  const [finalProcessedImg, setFinalProcessedImg] = useState(null);
   const [aadhar, setAadhar] = useState({ front: null, back: null });
   const [croppingSide, setCroppingSide] = useState(null);
-
   const imgRef = useRef(null);
   const printRef = useRef(null);
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState();
 
+  // --- LOGIN HANDLER ---
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    if (loginForm.userId === AUTH_ID && loginForm.password === AUTH_PASS) {
+      setIsAuthenticated(true);
+    } else {
+      alert("Invalid Credentials! Please check your .env settings.");
+    }
+  };
+
+  // --- YOUR ORIGINAL LOGIC (No changes) ---
   useEffect(() => {
     const bakeFilters = (imgSource) => {
       if (!imgSource) return;
@@ -94,42 +111,29 @@ export default function App() {
     img.src = transparentBase64;
   };
 
-  // UPDATED: handleFile with PDF Password Support
-// 1. Increase PDF Import Scale for crystal clear text
   const handleFile = async (file, side = null) => {
     if (!file) return;
     if (side) setCroppingSide(side);
-
     if (file.type === 'application/pdf') {
       try {
         const buffer = await file.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: buffer });
-
         loadingTask.onPassword = (updatePassword) => {
           const pass = prompt("Enter Aadhaar Password:");
           if (pass) updatePassword(pass);
         };
-
         const pdf = await loadingTask.promise;
         const pdfPage = await pdf.getPage(1);
-        
-        // CHANGED: Scale increased to 5.0 for Ultra HD resolution
-        const viewport = pdfPage.getViewport({ scale: 10.0 }); 
-        
+        const viewport = pdfPage.getViewport({ scale: 10.0 });
         const canvas = document.createElement('canvas');
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        
         const ctx = canvas.getContext('2d');
-        // Enable high-quality drawing
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-
         await pdfPage.render({ canvasContext: ctx, viewport }).promise;
-        setSrc(canvas.toDataURL('image/jpeg', 1.0)); // 1.0 = No compression
-      } catch (err) {
-        alert("Error loading PDF");
-      }
+        setSrc(canvas.toDataURL('image/jpeg', 1.0));
+      } catch (err) { alert("Error loading PDF"); }
     } else {
       const reader = new FileReader();
       reader.onload = () => setSrc(reader.result);
@@ -137,40 +141,19 @@ export default function App() {
     }
   };
 
-  // 2. High-Resolution Cropping Logic
   const applyCrop = () => {
     if (!completedCrop || !imgRef.current) return;
-
     const img = imgRef.current;
     const canvas = document.createElement('canvas');
-
-    // Calculate the ratio between the display size and the actual file size
     const scaleX = img.naturalWidth / img.width;
     const scaleY = img.naturalHeight / img.height;
-
-    // Set canvas to the ORIGINAL file's pixel dimensions
     canvas.width = completedCrop.width * scaleX;
     canvas.height = completedCrop.height * scaleY;
-
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-
-    ctx.drawImage(
-      img,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    // Export as high-quality JPEG
+    ctx.drawImage(img, completedCrop.x * scaleX, completedCrop.y * scaleY, completedCrop.width * scaleX, completedCrop.height * scaleY, 0, 0, canvas.width, canvas.height);
     const croppedData = canvas.toDataURL('image/jpeg', 1.0);
-    
     if (layout === 'aadhar' && croppingSide) {
       setAadhar(prev => ({ ...prev, [croppingSide]: croppedData }));
     } else {
@@ -179,50 +162,6 @@ export default function App() {
     setSrc(null);
   };
 
-// const applyCrop = () => {
-//     if (!completedCrop || !imgRef.current) return;
-
-//     const img = imgRef.current;
-//     const canvas = document.createElement('canvas');
-
-//     // These represent the actual pixels of the original high-res image
-//     const pixelRatio = window.devicePixelRatio || 1;
-//     const scaleX = img.naturalWidth / img.width;
-//     const scaleY = img.naturalHeight / img.height;
-
-//     // Set canvas dimensions to the ACTUAL high-res pixels
-//     canvas.width = completedCrop.width * scaleX;
-//     canvas.height = completedCrop.height * scaleY;
-
-//     const ctx = canvas.getContext('2d');
-
-//     // Use imageSmoothingEnabled for better clarity
-//     ctx.imageSmoothingEnabled = true;
-//     ctx.imageSmoothingQuality = 'high';
-
-//     ctx.drawImage(
-//       img,
-//       completedCrop.x * scaleX,
-//       completedCrop.y * scaleY,
-//       completedCrop.width * scaleX,
-//       completedCrop.height * scaleY,
-//       0,
-//       0,
-//       canvas.width,
-//       canvas.height
-//     );
-
-//     // Using 1.0 quality to preserve every detail
-//     const croppedData = canvas.toDataURL('image/jpeg', 1.0);
-    
-//     if (layout === 'aadhar' && croppingSide) {
-//       setAadhar(prev => ({ ...prev, [croppingSide]: croppedData }));
-//     } else {
-//       setImage(croppedData);
-//     }
-//     setSrc(null);
-//   };
-
   const handlePrint = () => {
     const isCustom4x6 = layout === 'custom' && customPaper === '4x6';
     const isStandardSmall = ['pvc', 'aadhar'].includes(layout);
@@ -230,7 +169,6 @@ export default function App() {
     const win = window.open('', '_blank');
     const w = useSmallPaper ? '3.98in' : '210mm';
     const h = useSmallPaper ? '5.98in' : '297mm';
-
     win.document.write(`
       <html>
         <head>
@@ -259,58 +197,70 @@ export default function App() {
     win.document.close();
   };
 
+  // --- RENDER LOGIN VIEW IF NOT AUTHENTICATED ---
+  if (!isAuthenticated) {
+    return (
+      <div className="login-container" style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5' }}>
+        <div className="card" style={{ width: '320px', padding: '30px' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>🔐 Studio Login</h2>
+          <form onSubmit={handleLoginSubmit}>
+            <div style={{ marginBottom: '15px' }}>
+              <label>User ID</label>
+              <input
+                type="text"
+                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                value={loginForm.userId}
+                onChange={(e) => setLoginForm({ ...loginForm, userId: e.target.value })}
+                required
+              />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label>Password</label>
+              <input
+                type="password"
+                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                required
+              />
+            </div>
+            <button className="main-action-btn" type="submit" style={{ width: '100%' }}>Login</button>
+          </form>
+          <p style={{ fontSize: '10px', textAlign: 'center', marginTop: '15px', color: '#888' }}>
+            Developed By Sammek Pravin Sovitkar
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- MAIN APP VIEW (Returned only if authenticated) ---
   return (
     <div className="app-container">
-      <header className="header"><h1>Photo Studio Pro</h1></header>
+      <header className="header">
+        <h1>Photo Management - Developed By Sammek Pravin Sovitkar</h1>
+        <button
+          onClick={() => setIsAuthenticated(false)}
+          style={{ position: 'absolute', right: '20px', background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Logout
+        </button>
+      </header>
       <main className="main-content">
         <aside className="sidebar">
+
           <div className="card">
             <h4 className="section-title">1. Layout</h4>
             <div className="tab-grid">
               {layoutOptions.map(opt => (
-                <button key={opt.value} className={`tab-btn ${layout === opt.value ? 'active' : ''}`} 
-                  onClick={() => { setLayout(opt.value); setImage(null); setAadhar({front:null, back:null}); }}>
+                <button key={opt.value} className={`tab-btn ${layout === opt.value ? 'active' : ''}`}
+                  onClick={() => { setLayout(opt.value); setImage(null); setAadhar({ front: null, back: null }); }}>
                   <span className="icon">{opt.icon}</span><span className="label">{opt.label}</span>
                 </button>
               ))}
             </div>
           </div>
-
-          {layout === 'custom' && (
-            <div className="card">
-              <h4 className="section-title">Custom Settings</h4>
-              <p style={{fontSize:"12px"}}>for Passport - Width- 1.6 , Height - 1.9</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '10px' }}>
-                <div><label>Width (in)</label><input type="number" step="0.1" value={customW} onChange={e => setCustomW(e.target.value)} style={{ width: '100%' }} /></div>
-                <div><label>Height (in)</label><input type="number" step="0.1" value={customH} onChange={e => setCustomH(e.target.value)} style={{ width: '100%' }} /></div>
-              </div>
-              <label>Count</label><input type="number" value={customCount} onChange={e => setCustomCount(e.target.value)} style={{ width: '100%', marginBottom: '10px' }} />
-              <label>Paper Size</label>
-              <div className="tab-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              
-                <button className={`tab-btn ${customPaper === '4x6' ? 'active' : ''}`} onClick={() => setCustomPaper('4x6')}>4x6</button>
-                  <button className={`tab-btn ${customPaper === 'a4' ? 'active' : ''}`} onClick={() => setCustomPaper('a4')}>A4</button>
-              </div>
-            </div>
-          )}
-
-          <div className="card">
-            <h4 className="section-title">2. Background & Filters</h4>
-            <div className="bg-controls">
-              <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} />
-              <button className="bg-btn" onClick={handleRemoveBg} disabled={!image || isProcessing}>
-                {isProcessing ? "⏳ Removing..." : "✨ Change Background"}
-              </button>
-            </div>
-            <br/>
-            <label>Brightness: {brightness}%</label>
-            <input type="range" min="50" max="150" value={brightness} onChange={e => setBrightness(e.target.value)} className="slider" />
-            <br/>
-            <label>Contrast: {contrast}%</label>
-            <input type="range" min="50" max="150" value={contrast} onChange={e => setContrast(e.target.value)} className="slider" />
-          </div>
-
-          <div className="card">
+    <div className="card">
             <h4 className="section-title">3. Upload & Print</h4>
             {layout === 'aadhar' ? (
               <div className="upload-group">
@@ -327,31 +277,95 @@ export default function App() {
             )}
             <button className="print-btn" onClick={handlePrint} disabled={!(image || aadhar.front)}>📤 PRINT NOW</button>
           </div>
+          {layout === 'custom' && (
+            <div className="card">
+              <h4 className="section-title">Custom Settings</h4>
+              <p style={{ fontSize: "12px", textAlign: "center" }}>for Passport - Width- 1.38 , Height - 1.72</p>
+              <div style={{ display: 'flex', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '10px' }}>
+                <div><label>Width (in)</label><input type="number" step="0.1" value={customW} onChange={e => setCustomW(e.target.value)} style={{ width: '100%', textAlign: "center" }} /></div>
+                <div><label>Height (in)</label><input type="number" step="0.1" value={customH} onChange={e => setCustomH(e.target.value)} style={{ width: '100%', textAlign: "center" }} /></div>
+                <div><label>Count</label><input type="number" value={customCount} onChange={e => setCustomCount(e.target.value)} style={{ width: '100%', textAlign: "center", marginBottom: '10px' }} /></div>
+
+              </div>
+              <label>Paper Size</label>
+              <div className="tab-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+
+                <button className={`tab-btn ${customPaper === '4x6' ? 'active' : ''}`} onClick={() => setCustomPaper('4x6')}>4x6</button>
+                <button className={`tab-btn ${customPaper === 'a4' ? 'active' : ''}`} onClick={() => setCustomPaper('a4')}>A4</button>
+              </div>
+            </div>
+          )}
+
+
+          <div className="card">
+            <h4 className="section-title">2. Background & Filters</h4>
+            <div className="bg-controls">
+              <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} />
+              <button className="bg-btn" onClick={handleRemoveBg} disabled={!image || isProcessing}>
+                {isProcessing ? "⏳ Removing..." : "✨ Change Background"}
+              </button>
+            </div>
+            <br />
+            <label>Brightness: {brightness}%</label>
+            <input type="range" min="50" max="150" value={brightness} onChange={e => setBrightness(e.target.value)} className="slider" />
+            <br />
+            <label>Contrast: {contrast}%</label>
+            <input type="range" min="50" max="150" value={contrast} onChange={e => setContrast(e.target.value)} className="slider" />
+          </div>
+
+
         </aside>
 
         <section className="preview-pane">
           <div className="sheet" ref={printRef} style={{
-             width: (layout === 'custom' ? (customPaper === '4x6' ? '384px' : '595px') : (layout === 'pvc' || layout === 'aadhar' ? '384px' : '595px')),
-             height: (layout === 'custom' ? (customPaper === '4x6' ? '576px' : '842px') : (layout === 'pvc' || layout === 'aadhar' ? '576px' : '842px')),
-             padding: '15px',  display:(layout=== "pvc"?"block":"flex"),flexFlow:"wrap",
-             backgroundColor: '#fff', transform: 'scale(0.85)', transformOrigin: 'top center'
-           }}>
+            width: (layout === 'custom' ? (customPaper === '4x6' ? '384px' : '595px') : '384px'),
+            height: (layout === 'custom' ? (customPaper === '4x6' ? '576px' : '842px') : '576px'),
+            padding: '15px',
+            display: 'flex',
+            flexFlow: 'wrap',
+            gap: '1mm',
+            backgroundColor: '#fff',
+            transform: 'scale(0.85)',
+            transformOrigin: 'top center'
+          }}>
+
             {layout === 'aadhar' ? (
-              <div style={{display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', alignItems: 'center', paddingTop: '40px'}}>
-                <div className="id-size">{aadhar.front && <img src={aadhar.front} alt='f' style={{filter: `brightness(${brightness}%) contrast(${contrast}%)`}} />}</div>
-                <div className="id-size">{aadhar.back && <img src={aadhar.back} alt='b' style={{filter: `brightness(${brightness}%) contrast(${contrast}%)`}} />}</div>
-              </div>
-            ) : layout === 'custom' ? (
-              [...Array(parseInt(customCount) || 0)].map((_, i) => (
-                <div key={i} className="custom-size" style={{ width: `${customW}in`, height: `${customH}in`, border: '0.1mm solid #000', overflow: 'hidden', margin: '1mm' }}>
-                   {finalProcessedImg && <img src={finalProcessedImg} alt="img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', alignItems: 'center', paddingTop: '40px' }}>
+                <div className="id-size">
+                  {aadhar.front ? (
+                    <img src={aadhar.front} alt='front' style={{ filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />
+                  ) : (
+                    <span style={{ color: '#ccc' }}>Front Side</span>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="id-size" style={{ margin: 'auto' }}>
-                {finalProcessedImg && <img src={finalProcessedImg} alt="img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                <div className="id-size">
+                  {aadhar.back ? (
+                    <img src={aadhar.back} alt='back' style={{ filter: `brightness(${brightness}%) contrast(${contrast}%)` }} />
+                  ) : (
+                    <span style={{ color: '#ccc' }}>Back Side</span>
+                  )}
+                </div>
               </div>
-            )}
+            ) :
+              layout === 'custom' ? (
+                [...Array(parseInt(customCount) || 0)].map((_, i) => (
+                  <div key={i} className="custom-size" style={{ width: `${customW}in`, height: `${customH}in` }}>
+                    {(finalProcessedImg || image) ? (
+                      <img src={finalProcessedImg || image} alt="img" />
+                    ) : (
+                      <span style={{ fontSize: '10px', color: '#ccc' }}>Photo</span>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="id-size" style={{ margin: '40px auto' }}>
+                  {(finalProcessedImg || image) ? (
+                    <img src={finalProcessedImg || image} alt="img" />
+                  ) : (
+                    <span style={{ color: '#ccc' }}>PVC Card Photo</span>
+                  )}
+                </div>
+              )}
           </div>
         </section>
       </main>
