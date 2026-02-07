@@ -1,36 +1,171 @@
-.app-container { background: #f4f7f6; min-height: 100vh; font-family: 'Inter', sans-serif; color: #333; }
-.header { background: #2c3e50; color: #fff; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-.main-content { display: flex; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; }
-.sidebar { width: 320px; display: flex; flex-direction: column; gap: 15px; }
-.card { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; }
-.section-title { font-size: 11px; color: #95a5a6; text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
+:root {
+  --primary: #4f46e5;
+  --success: #10b981;
+  --danger: #ef4444;
+  --sidebar: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+body { margin: 0; font-family: 'Inter', sans-serif; background: #e2e8f0; color: #1e293b; }
+
+/* Login */
+.login-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e293b, #0f172a); }
+.login-card { background: white; padding: 40px; border-radius: 20px; width: 360px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
+.login-logo { font-size: 50px; margin-bottom: 10px; }
+.login-card h2 { margin: 0; color: #1e293b; }
+.login-card p { color: #64748b; margin-bottom: 25px; }
+.login-card input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; }
+.login-card button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+.dev-credit-login { margin-top: 25px; font-size: 12px; color: #94a3b8; }
+
+/* Main Layout */
+.header { background: #1e293b; color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo-icon { font-size: 24px; background: #334155; padding: 8px; border-radius: 10px; }
+.header h1 { margin: 0; font-size: 20px; }
+.header small { font-weight: 400; color: #94a3b8; }
+.dev-header { display: flex; align-items: center; gap: 15px; }
+.dev-badge { background: #334155; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.logout-pill { background: #ef4444; border: none; color: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+
+.main-content { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 65px); }
+.sidebar { background: var(--sidebar); padding: 20px; overflow-y: auto; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; }
+
+.card { background: white; padding: 18px; border-radius: 15px; box-shadow: var(--card-shadow); border: 1px solid #f1f5f9; }
+.section-title { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; margin: 0 0 12px 0; border-left: 3px solid var(--primary); padding-left: 10px; }
 
 .tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.tab-btn { padding: 10px 5px; border: 1px solid #dfe6e9; background: #fff; cursor: pointer; border-radius: 8px; display: flex; flex-direction: column; align-items: center; font-size: 12px; }
-.tab-btn.active { background: #3498db; color: #fff; border-color: #3498db; }
+.tab-btn { padding: 12px 5px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; }
+.tab-btn .icon { font-size: 20px; }
+.tab-btn .label { font-size: 11px; font-weight: 600; }
+.tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); }
 
-/* Background Remover Styling */
-.bg-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
-.bg-controls input[type="color"] { width: 40px; height: 40px; border: none; border-radius: 5px; cursor: pointer; }
-.bg-btn { flex: 1; background: #9b59b6; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+/* Inputs & Toggles */
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.input-group label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #64748b; }
+.input-group input { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+.paper-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 10px; }
+.paper-toggle button { border: none; padding: 6px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; background: transparent; }
+.paper-toggle button.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-.slider { width: 100%; margin: 10px 0; }
+/* Enhancement */
+.bg-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+.bg-controls input[type="color"] { width: 45px; height: 45px; border: none; border-radius: 10px; cursor: pointer; padding: 0; }
+.bg-btn { flex: 1; border: none; border-radius: 10px; background: #8b5cf6; color: white; font-weight: 700; cursor: pointer; font-size: 12px; }
 
-.main-action-btn { background: #27ae60; color: #fff; padding: 12px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; }
-.main-action-btn.cancel { background: #95a5a6; }
-.print-btn { background: #e74c3c; color: #fff; padding: 14px; border: none; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-weight: 700; }
+.filter-group { display: flex; flex-direction: column; gap: 12px; }
+.filter-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+.slider { width: 100%; height: 6px; -webkit-appearance: none; background: #e2e8f0; border-radius: 5px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; cursor: pointer; }
 
-.upload-slot { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px dashed #3498db; border-radius: 8px; cursor: pointer; background: #f0f7ff; color: #2980b9; font-weight: bold; }
+/* Upload & Print */
+.upload-slot { width: 100%; padding: 12px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; color: #64748b; font-weight: 600; font-size: 12px; cursor: pointer; margin-bottom: 8px; text-align: center; }
+.upload-slot.done { border-color: var(--success); color: var(--success); background: #f0fdf4; }
+.main-action-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #334155; color: white; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+.print-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; background: var(--success); color: white; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); }
+.print-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.preview-pane { flex: 1; background: #95a5a6; border-radius: 15px; display: flex; justify-content: center; padding: 20px; overflow: hidden; }
-.sheet { background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+/* Preview Pane */
+.preview-pane { background: #94a3b8; display: flex; justify-content: center; align-items: flex-start; padding: 40px; overflow: auto; }
+.sheet { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
 
-/* Physical Scaling Logic */
-.id-size { width: 323px; height: 204px; border: 1px solid #000; overflow: hidden; }
-.passport-size { width: 115px; height: 135px; border: 1px solid #000; overflow: hidden; }
-.id-size img, .passport-size img { width: 100%; height: 100%; object-fit: cover; }
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal-body { background: white; padding: 25px; border-radius: 20px; max-width: 90vw; }
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+.cancel { background: #ef4444; }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.modal-body { background: #fff; padding: 20px; border-radius: 12px; max-width: 90vw; }
-.modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+.custom-size { border: 0.1mm solid #000; overflow: hidden; }
+
+/* Add or Update these in your App.css */
+
+.id-size {
+  width: 3.37in;
+  height: 2.12in;
+  border: 1px solid #000; /* Ensures box is visible */
+  background-color: #f9f9f9; /* Light grey so you see the slot */
+  margin-bottom: 2mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.custom-size {
+  border: 1px solid #000;
+  background-color: #f9f9f9;
+  margin: 1mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.id-size img, .custom-size img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ensure the sheet (A4 or 4x6) is visible */
+.sheet {
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  background-color: white;
+  margin: 0 auto;
+}
+/* Center the login container */
+.login-container {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Style the login inputs */
+.login-container input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 5px;
+  border: 1.5px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  outline: none;
+  background-color: #fafafa;
+}
+
+/* Add a blue glow when clicking inside the input */
+.login-container input:focus {
+  border-color: #007bff;
+  background-color: #ffffff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Style the labels for better readability */
+.login-container label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+/* Ensure the Login card looks professional */
+.login-container .card {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 12px;
+  background: white;
+}
+
+/* Specific styling for the login button */
+.login-container .main-action-btn {
+  margin-top: 10px;
+  height: 45px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
